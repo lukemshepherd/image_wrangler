@@ -62,3 +62,55 @@ def mask_tidy(directory):
         for match in matches2:
                 shutil.move(match, dest)
                 print(f'{match} moved to .../mask')
+                
+def mask_tidyer(target_dir):
+    """ Sorts your anoated images into 'mask' and 'image' folders, using copy"""
+    
+    target_dir = Path(target_dir)
+    os.chdir(target_dir)
+    
+    mask_patten= re.compile(r'anon\d{3}.\d+_mask.png')
+    
+    all_files = os.listdir(target_dir)
+    mask_matches = mask_patten.findall(str(all_files))
+    
+    img_matches = []
+    
+    for img in mask_matches:
+        img_file = f'{img[:-9]}.png'
+        img_matches.append(img_file)
+    
+    os.makedirs('masks',exist_ok=True)
+    
+    for mask_file in mask_matches:
+        shutil.copy(mask_file, target_dir/'masks')
+        print(f'{mask_file} coppied to {target_dir}/mask')
+
+    os.makedirs('images',exist_ok=True)
+    
+    for img_file in img_matches:
+        shutil.copy(img_file, target_dir/'images')
+        print(f'{img_file} moved to {target_dir}/images')
+        
+        
+
+def mask_floor(target_dir):
+    """ re-sets your mask to 0, 1 vaules"""
+    target_dir = Path(target_dir)
+    os.chdir(target_dir)
+    
+    all_files = os.listdir(target_dir)
+    if '.DS_Store' in all_files:
+        all_files.remove('.DS_Store')
+
+    #os.makedirs('mask_floor',exist_ok= True)
+    
+    for img_file in all_files:
+        # open image 
+        im = imageio.imread(img_file)
+        #set_trace()
+        arr = np.where(im > 0, 1, 0)
+        arr = arr.astype('uint8')
+        print(f'{img_file} floored')
+        
+        imageio.imwrite(target_dir/img_file, arr)
